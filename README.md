@@ -5,9 +5,9 @@ Un servidor recién instalado funciona, pero no está protegido: cualquiera pued
 No es todo lo que se puede hacer, pero es la base sobre la que se construye todo lo demás.
 
 <p align="center">
-  <img src="laboratorio-seguridad/capturas/04-lynis-inicial.png" width="420" alt="Auditoría inicial: 61">
-  &nbsp;
-  <img src="laboratorio-seguridad/capturas/23-lynis-final.png" width="380" alt="Auditoría final: 81">
+  <img src="laboratorio-seguridad/capturas/lynis-antes.png" height="280" alt="Auditoría inicial: 61">
+  &nbsp;&nbsp;
+  <img src="laboratorio-seguridad/capturas/lynis-despues.png" height="280" alt="Auditoría final: 81">
 </p>
 <p align="center"><b>Auditoría con Lynis:</b> de <b>61/100</b> (servidor recién instalado) a <b>81/100</b> (servidor protegido)</p>
 
@@ -30,6 +30,15 @@ No es todo lo que se puede hacer, pero es la base sobre la que se construye todo
 
 **Qué hice:** ahora para entrar hacen falta dos cosas: una **llave** guardada en mi computadora y un **código de 6 dígitos** que genera el celular (2FA). Las contraseñas y el usuario root quedaron bloqueados.
 
+```bash
+# /etc/ssh/sshd_config.d/10-hardening.conf
+PasswordAuthentication no          # no se aceptan contraseñas
+PermitRootLogin no                 # root no puede entrar
+AllowUsers bruno                   # solo este usuario
+MaxAuthTries 3                     # máximo 3 intentos por conexión
+AuthenticationMethods publickey,keyboard-interactive   # llave + código 2FA
+```
+
 <p align="center"><img src="laboratorio-seguridad/capturas/22-banner-ssh.png" width="600" alt="Acceso con llave y código 2FA"></p>
 
 **Resultado:** los intentos de entrar con contraseña o como root se rechazan directamente.
@@ -42,6 +51,23 @@ No es todo lo que se puede hacer, pero es la base sobre la que se construye todo
 
 **Qué hice:** el firewall (**ufw**) bloquea todo lo que entra, salvo SSH y la web. **fail2ban** vigila los intentos de acceso y bloquea a quien falla 3 veces.
 
+```bash
+# Firewall: se cierra todo y se abre solo lo necesario
+sudo ufw default deny incoming
+sudo ufw allow 22/tcp     # SSH
+sudo ufw allow 80,443/tcp # web
+sudo ufw enable
+```
+
+```ini
+# /etc/fail2ban/jail.local
+[sshd]
+enabled  = true
+maxretry = 3     # 3 intentos fallidos...
+findtime = 10m   # ...en 10 minutos...
+bantime  = 1h    # ...bloquean la IP por 1 hora
+```
+
 **Resultado:** simulé un ataque y, al tercer intento, la IP quedó bloqueada automáticamente en el firewall.
 
 <p align="center"><img src="laboratorio-seguridad/capturas/10-fail2ban-bloqueo.png" width="600" alt="fail2ban bloquea la IP atacante"></p>
@@ -52,6 +78,13 @@ No es todo lo que se puede hacer, pero es la base sobre la que se construye todo
 
 **Qué hice:** instalé **nginx** con HTTPS (TLS 1.3), oculté la versión del servidor y agregué cabeceras de seguridad que protegen contra ataques web comunes.
 
+```nginx
+ssl_protocols TLSv1.2 TLSv1.3;    # solo versiones seguras de TLS
+server_tokens off;                # no mostrar la versión de nginx
+add_header X-Frame-Options "DENY";                 # evita clickjacking
+add_header Strict-Transport-Security "max-age=31536000";  # obliga a usar HTTPS
+```
+
 <p align="center"><img src="laboratorio-seguridad/capturas/17-cabeceras-despues.png" width="600" alt="Versión oculta y cabeceras de seguridad"></p>
 
 ## 4. Backups cifrados
@@ -59,6 +92,14 @@ No es todo lo que se puede hacer, pero es la base sobre la que se construye todo
 **El riesgo:** un disco que falla, un error humano o un ransomware pueden borrar todo. Y un backup sin cifrar es otra copia de los datos que se puede robar.
 
 **Qué hice:** un script hace una copia de seguridad todos los días, cifrada con **GPG**, y guarda los últimos 7 días.
+
+```bash
+# Comprime y cifra en un solo paso: nunca queda una copia sin cifrar en el disco
+tar -czf - /etc /var/www /home/bruno | gpg --encrypt --recipient-file backup-pub.asc > backup.tar.gz.gpg
+
+# cron: todos los días a las 03:00
+0 3 * * * root /usr/local/sbin/backup-servidor.sh
+```
 
 **Resultado:** un backup solo sirve si se puede recuperar, así que lo probé: el archivo restaurado salió idéntico al original.
 
