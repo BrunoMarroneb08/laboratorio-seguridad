@@ -1,5 +1,4 @@
-prueba
-  linea 2 con [link](a/b.png)# Laboratorio de seguridad · Nivel 1: Servidor Linux asegurado
+# Laboratorio de seguridad · Nivel 1: Servidor Linux asegurado
 
 Instalé un servidor **Ubuntu Server 26.04 LTS** desde cero en una máquina virtual y lo endurecí como se hace en un entorno empresarial: acceso SSH con llave y autenticación en dos pasos, firewall, bloqueo automático de ataques de fuerza bruta, servidor web con HTTPS, backups cifrados y herramientas de detección. Medí el resultado con **Lynis**, la herramienta estándar de auditoría para Linux: el puntaje pasó de **61 a 81**.
 
