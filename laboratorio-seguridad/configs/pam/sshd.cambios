@@ -1,0 +1,10 @@
+# Cambios en /etc/pam.d/sshd para el 2FA (TOTP)
+
+# 1. Se comenta para que SSH no pida también la contraseña del sistema:
+# @include common-auth
+
+# 2. Se agrega al final del archivo:
+auth required pam_google_authenticator.so
+
+# El secreto TOTP (~/.google_authenticator), el QR y los códigos de
+# emergencia NO se incluyen en este repositorio.

@@ -1,0 +1,3 @@
+# /etc/cron.d/backup-servidor
+# Todos los días a las 03:00 UTC (00:00 en Uruguay)
+0 3 * * * root /usr/local/sbin/backup-servidor.sh

@@ -1,0 +1,10 @@
+# /etc/audit/rules.d/hardening.rules
+# -w archivo vigilado, -p wa escrituras y cambios de atributos, -k etiqueta de búsqueda
+-w /etc/passwd -p wa -k identidad
+-w /etc/shadow -p wa -k identidad
+-w /etc/group -p wa -k identidad
+-w /etc/sudoers -p wa -k sudo
+-w /etc/sudoers.d/ -p wa -k sudo
+-w /etc/ssh/sshd_config -p wa -k ssh
+-w /etc/ssh/sshd_config.d/ -p wa -k ssh
+-w /etc/nginx/ -p wa -k nginx
