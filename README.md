@@ -62,7 +62,12 @@ No es todo lo que se puede hacer, pero es la base sobre la que se construye todo
 
 **Resultado:** un backup solo sirve si se puede recuperar, así que lo probé: el archivo restaurado salió idéntico al original.
 
-<p align="center"><img src="laboratorio-seguridad/capturas/18-restauracion-ok.png" width="800" alt="Restauración comprobada"></p>
+```text
+$ cat backup-2026-10-19.tar.gz.gpg | gpg --decrypt | tar -xzf - ...
+gpg: encrypted with rsa4096 key, "Backup servidor-ubuntu"
+$ diff archivo-original archivo-restaurado && echo "RESTAURACION OK"
+RESTAURACION OK: archivos identicos
+```
 
 ## 5. Detección de cambios
 
